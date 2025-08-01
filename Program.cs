@@ -1,4 +1,8 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<GalleryConfiguration>(builder.Configuration.GetSection("Gallery"));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -11,7 +15,7 @@ if (app.Environment.IsDevelopment())
 
 var api = app.MapGroup("/api");
 
-api.MapGet("/gallery/all", () => new Gallery[]
+api.MapGet("/gallery/all", ([FromServices] IOptions<GalleryConfiguration> configuration) => new Gallery[]
 {
     new Gallery("1", "Nature Gallery", "A collection of beautiful nature images."),
     new Gallery("2", "Urban Gallery", "A showcase of urban photography.")
@@ -29,6 +33,9 @@ api.MapGet("/gallery/{galleryId}/images", (string galleryId) => new Image[]
     new Image("2", galleryId, "https://example.com/image2.jpg", "A serene mountain landscape.")
 });
 
+api.MapGet("/images/{imageId}",
+(string galleryId) => Results.Ok(new StringReader("ghdsjkgfhjgfdshjgfsdhj")));
+
 api.MapPost("/gallery/{galleryId}/images", (string galleryId) => { });
 
 app.Run();
@@ -36,3 +43,8 @@ app.Run();
 record Gallery(string GalleryId, string Name, string Description);
 
 record Image(string ImageId, string GalleryId, string Url, string Description);
+
+class GalleryConfiguration
+{
+    public string RootDirectory { get; set; }
+}
