@@ -2,7 +2,12 @@ using Lithium.Gallery.Api;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>policy.AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader());
+});
 builder.Host.UseSerilog((context, services, configuration) =>
 {
     configuration
@@ -21,14 +26,17 @@ builder.Services.AddAntiforgery(options =>
     options.HeaderName = "X-CSRF-TOKEN";
 });
 builder.Services.AddGalleryApi(builder.Configuration.GetSection("Gallery"));
+builder.Services.AddInstagramImages();
 
 var app = builder.Build();
+app.UseCors("AllowAll");
 app.UseSerilogRequestLogging();
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseAntiforgery();
 app.UseGalleryApi();
+app.UseInstagramImages();
 
 app.Run();
 

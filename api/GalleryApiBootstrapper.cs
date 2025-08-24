@@ -17,12 +17,12 @@ public static class GalleryBootstrapper
     {
         var api = app.MapGroup("/api");
 
-        api.MapGet("/gallery/all", ([FromServices] IOptions<GalleryConfiguration> cfg) =>
+        api.MapGet("/gallery/all", async ([FromServices] IOptions<GalleryConfiguration> cfg) =>
             Directory.GetDirectories(cfg.Value.RootDirectory ?? "uploads")
                 .Select(dir => new DirectoryInfo(dir))
                 .Select(dirInfo => dirInfo.Name));
 
-        api.MapPost("/gallery/{galleryId}", (string galleryId, Gallery gallery, [FromServices] IOptions<GalleryConfiguration> cfg) =>
+        api.MapPost("/gallery/{galleryId}", async (string galleryId, Gallery gallery, [FromServices] IOptions<GalleryConfiguration> cfg) =>
         {
             var directoryPath = Path.Combine(cfg.Value.RootDirectory ?? "uploads", galleryId);
             if (Path.Exists(directoryPath))
@@ -38,7 +38,7 @@ public static class GalleryBootstrapper
             return Results.Created($"/api/gallery/{galleryId}", gallery);
         });
 
-        api.MapPut("/gallery/{galleryId}", (string galleryId, Gallery gallery, [FromServices] IOptions<GalleryConfiguration> cfg) =>
+        api.MapPut("/gallery/{galleryId}", async (string galleryId, Gallery gallery, [FromServices] IOptions<GalleryConfiguration> cfg) =>
         {
             var directoryPath = Path.Combine(cfg.Value.RootDirectory ?? "uploads", galleryId);
             var serializer = new SerializerBuilder()
@@ -49,7 +49,7 @@ public static class GalleryBootstrapper
             return Results.Ok(gallery);
         });
 
-        api.MapGet("/gallery/{galleryId}", (string galleryId, [FromServices] IOptions<GalleryConfiguration> cfg) =>
+        api.MapGet("/gallery/{galleryId}", async (string galleryId, [FromServices] IOptions<GalleryConfiguration> cfg) =>
         {
             var directoryPath = Path.Combine(cfg.Value.RootDirectory ?? "uploads", galleryId);
             var deserializer = new DeserializerBuilder()
@@ -65,7 +65,7 @@ public static class GalleryBootstrapper
             return Results.Ok(gallery);
         });
 
-        api.MapGet("/gallery/{galleryId}/images", (string galleryId, [FromServices] IOptions<GalleryConfiguration> cfg) =>
+        api.MapGet("/gallery/{galleryId}/images", async (string galleryId, [FromServices] IOptions<GalleryConfiguration> cfg) =>
             Directory.GetFiles(Path.Combine(cfg.Value.RootDirectory ?? "uploads", galleryId))
                 .Where(file => cfg.Value.SupportedExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
                 .Select(file => new Image
@@ -97,7 +97,7 @@ public static class GalleryBootstrapper
     public class GalleryConfiguration
     {
         public string? RootDirectory { get; set; }
-        public string[] SupportedExtensions { get; set; } = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+        public string[] SupportedExtensions { get; set; } = [".jpg", ".jpeg", ".png", ".gif"];
     }
 
     public class Gallery
